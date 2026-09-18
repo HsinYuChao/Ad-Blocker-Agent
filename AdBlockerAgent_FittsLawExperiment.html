@@ -1,0 +1,3620 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Ad Blocker Agent — Fitts' Law Experiment</title>
+
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+
+    margin: 0;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    font-family:
+        Inter,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    background: #10131a;
+
+    color: #f3f5f7;
+}
+
+body {
+
+    user-select: none;
+}
+
+#app {
+
+    width: 100vw;
+    height: 100vh;
+
+    display: flex;
+
+    flex-direction: column;
+
+    background:
+        radial-gradient(
+            circle at 50% 0%,
+            #202938 0%,
+            #10131a 55%
+        );
+}
+
+/* =========================================================
+   HUD
+   ========================================================= */
+
+#hud {
+
+    height: 72px;
+    flex: 0 0 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    background: #171b24;
+    border-bottom:
+        1px solid #303746;
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+}
+
+
+.hud-left {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+
+.brand {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #7dd3fc;
+}
+
+
+.hud-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+
+.hud-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #7f8999;
+}
+
+
+.hud-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+/* =========================================================
+   Workspace
+   ========================================================= */
+
+#workspace {
+
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background:
+        linear-gradient(
+            rgba(255,255,255,0.025) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,0.025) 1px,
+            transparent 1px
+        );
+    background-size: 40px 40px;
+}
+
+#workspace::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border:
+        2px solid #252c39;
+}
+
+
+/* =========================================================
+   Popup
+   ========================================================= */
+
+.popup {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+
+    pointer-events: none;
+
+    background: #f8fafc;
+    color: #111827;
+
+    border:
+        var(--popup-border) solid #111827;
+
+    border-radius:
+        var(--popup-radius);
+
+    box-shadow:
+        0 14px 35px rgba(0, 0, 0, 0.45),
+        0 0 0 1px rgba(255,255,255,0.15);
+
+    z-index: 10;
+
+    box-sizing: border-box;
+
+    --scale: 1;
+
+    --popup-width:
+        calc(360px * var(--scale));
+
+    --popup-height:
+        calc(220px * var(--scale));
+
+    --popup-border:
+        max(1px, calc(2px * var(--scale)));
+
+    --popup-radius:
+        max(3px, calc(7px * var(--scale)));
+}
+
+.popup-titlebar {
+    position: relative;
+
+    /* Title bar 實際高度 = W */
+    height: var(--target-width);
+    min-height: var(--target-width);
+    flex: 0 0 var(--target-width);
+
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+
+    padding-left: calc(12px * var(--scale));
+
+    background: #202632;
+    color: #ffffff;
+
+    border-radius:
+        var(--popup-radius)
+        var(--popup-radius)
+        0
+        0;
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size:
+        calc(12px * var(--scale));
+
+    font-weight: bold;
+}
+
+.popup-body {
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    padding:
+        calc(20px * var(--scale));
+
+    pointer-events: none;
+}
+
+.warning {
+    margin-bottom:
+        calc(10px * var(--scale));
+
+    color: #dc2626;
+
+    font-size:
+        calc(14px * var(--scale));
+
+    font-weight: 800;
+}
+
+
+.popup-message {
+    color: #374151;
+
+    font-size:
+        calc(13px * var(--scale));
+
+    line-height: 1.5;
+}
+
+
+.fake-button {
+    width:
+        calc(120px * var(--scale));
+
+    height:
+        calc(28px * var(--scale));
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    margin-top:
+        calc(16px * var(--scale));
+
+    border-radius:
+        calc(4px * var(--scale));
+
+    background: #e5e7eb;
+
+    color: #4b5563;
+
+    font-size:
+        calc(11px * var(--scale));
+}
+
+/* =========================================================
+   X Target
+   ========================================================= */
+
+.close-target {
+    position: absolute;
+
+    top: 0;
+    right: 0;
+
+    width: var(--target-width);
+    height: var(--target-width);
+
+    box-sizing: border-box;
+
+    padding: 0;
+    margin: 0;
+    border: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #dc2626;
+    color: white;
+
+    pointer-events: auto;
+    cursor: crosshair;
+
+    z-index: 20;
+
+    appearance: none;
+    -webkit-appearance: none;
+
+    border-radius: 0 5px 0 5px;
+}
+
+
+.close-target::before,
+.close-target::after {
+
+    content: "";
+
+    position: absolute;
+
+    width: 55%;
+
+    height:
+        max(2px, calc(var(--target-width) * 0.08));
+
+    border-radius: 2px;
+
+    background: #ffffff;
+
+    pointer-events: none;
+}
+
+
+.close-target::before {
+    transform: rotate(45deg);
+}
+
+.close-target::after {
+    transform: rotate(-45deg);
+}
+
+
+.close-target:hover {
+    background: #b91c1c;
+}
+
+/* =========================================================
+   Overlay
+   ========================================================= */
+
+.overlay {
+
+    position: absolute;
+
+    inset: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background:
+        rgba(8, 11, 17, 0.84);
+
+    z-index: 200;
+}
+
+
+.panel {
+
+    width:
+        min(
+            720px,
+            calc(100vw - 40px)
+        );
+
+    padding: 36px;
+
+    background: #181d27;
+
+    border:
+        1px solid #394252;
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 25px 70px rgba(0, 0, 0, 0.5);
+}
+
+
+.panel h1 {
+
+    margin: 0 0 8px;
+
+    font-size: 30px;
+
+    letter-spacing: 1px;
+}
+
+
+.panel h2 {
+
+    margin: 0 0 20px;
+
+    color: #7dd3fc;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    letter-spacing: 1px;
+
+    text-transform: uppercase;
+}
+
+
+.panel p {
+
+    color: #cbd5e1;
+
+    font-size: 14px;
+
+    line-height: 1.7;
+}
+
+
+.instruction-list {
+
+    margin: 22px 0;
+
+    padding-left: 20px;
+
+    color: #cbd5e1;
+
+    font-size: 14px;
+
+    line-height: 1.8;
+}
+
+
+/* =========================================================
+   Example Popup
+   ========================================================= */
+
+.example-area {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    margin: 24px 0 28px;
+
+    padding: 30px;
+
+    min-height: 250px;
+
+    background: #11161f;
+
+    border:
+        1px solid #303746;
+
+    border-radius: 8px;
+}
+
+
+.example-popup {
+
+    position: relative;
+
+    width: 360px;
+
+    height: 220px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    background: #f8fafc;
+
+    color: #111827;
+
+    border:
+        2px solid #111827;
+
+    border-radius: 7px;
+
+    box-shadow:
+        0 14px 35px rgba(0,0,0,0.45);
+
+    box-sizing: border-box;
+
+    /* Example uses W = 50 px */
+    --example-target-width: 50px;
+    --scale: 1;
+}
+
+
+/* =========================================================
+   Example Popup Title Bar
+   ========================================================= */
+
+.example-popup-titlebar {
+
+    /* Title bar height = W = 50 px */
+    height: var(--example-target-width);
+
+    min-height: var(--example-target-width);
+
+    flex: 0 0 var(--example-target-width);
+
+    display: flex;
+
+    align-items: center;
+
+    padding-left: 12px;
+
+    box-sizing: border-box;
+
+    background: #202632;
+
+    color: white;
+
+    border-radius:
+        5px 5px 0 0;
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 12px;
+
+    font-weight: bold;
+}
+
+
+/* =========================================================
+   Example Popup Body
+   ========================================================= */
+
+.example-popup-body {
+
+    flex: 1;
+
+    padding: 20px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+}
+
+
+/* =========================================================
+   Example Warning
+   ========================================================= */
+
+.example-warning {
+
+    margin-bottom: 10px;
+
+    color: #dc2626;
+
+    font-size: 14px;
+
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   Example Message
+   ========================================================= */
+
+.example-message {
+
+    color: #374151;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   Example X Target
+   ========================================================= */
+
+.example-target {
+
+    position: absolute;
+
+    top: 0;
+
+    right: 0;
+
+    width: var(--example-target-width);
+
+    height: var(--example-target-width);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    box-sizing: border-box;
+
+    background: #dc2626;
+
+    border-radius:
+        0 5px 0 5px;
+}
+
+
+/* =========================================================
+   Example X
+   ========================================================= */
+
+.example-target::before,
+.example-target::after {
+
+    content: "";
+
+    position: absolute;
+
+    width: 55%;
+
+    height:
+        calc(var(--example-target-width) * 0.08);
+
+    min-height: 2px;
+
+    border-radius: 2px;
+
+    background: white;
+}
+
+
+.example-target::before {
+
+    transform:
+        rotate(45deg);
+}
+
+
+.example-target::after {
+
+    transform:
+        rotate(-45deg);
+}
+
+
+/* =========================================================
+   Example Caption
+   ========================================================= */
+
+.example-caption {
+
+    margin-top: 14px;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+
+    text-align: center;
+}
+
+
+/* =========================================================
+   Buttons
+   ========================================================= */
+
+.primary-button {
+
+    width: 100%;
+
+    height: 50px;
+
+    border: 0;
+
+    border-radius: 7px;
+
+    background: #2563eb;
+
+    color: white;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+
+.primary-button:hover {
+
+    background: #1d4ed8;
+}
+
+
+.secondary-button {
+
+    height: 46px;
+
+    padding:
+        0 24px;
+
+    border:
+        1px solid #475569;
+
+    border-radius: 7px;
+
+    background: #202632;
+
+    color: #e2e8f0;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+
+.secondary-button:hover {
+
+    background: #2a3240;
+}
+
+
+/* =========================================================
+   Start Target
+   ========================================================= */
+
+#startTarget {
+
+    position: absolute;
+
+    width: 64px;
+
+    height: 64px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border:
+        3px solid #93c5fd;
+
+    border-radius: 50%;
+
+    background: #2563eb;
+
+    color: white;
+
+    font-size: 12px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 0 0 8px
+            rgba(37, 99, 235, 0.12),
+        0 0 25px
+            rgba(37, 99, 235, 0.25);
+
+    z-index: 50;
+}
+
+
+#startTarget.hidden {
+
+    display: none;
+}
+
+
+/* =========================================================
+   Summary
+   ========================================================= */
+
+#summaryPanel {
+
+    width:
+        min(
+            900px,
+            calc(100vw - 40px)
+        );
+
+    max-height:
+        calc(100vh - 60px);
+
+    overflow: auto;
+}
+
+
+.summary-stats {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 12px;
+
+    margin: 20px 0;
+}
+
+
+.summary-stat {
+
+    padding: 16px;
+
+    background: #11161f;
+
+    border:
+        1px solid #303746;
+
+    border-radius: 7px;
+
+    text-align: center;
+}
+
+
+.summary-stat-label {
+
+    color: #7f8999;
+
+    font-size: 10px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+}
+
+
+.summary-stat-value {
+
+    margin-top: 5px;
+
+    font-size: 24px;
+
+    font-weight: 800;
+}
+
+
+#summaryTable {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+    margin: 20px 0;
+
+    font-size: 11px;
+}
+
+
+#summaryTable th,
+#summaryTable td {
+
+    padding: 9px;
+
+    border-bottom:
+        1px solid #303746;
+
+    text-align: center;
+}
+
+
+#summaryTable th {
+
+    color: #94a3b8;
+}
+
+
+#summaryTable td {
+
+    color: #e2e8f0;
+}
+
+
+/* =========================================================
+   Regression Result
+   ========================================================= */
+
+.regression-box {
+
+    margin: 20px 0;
+
+    padding: 18px;
+
+    background: #11161f;
+
+    border:
+        1px solid #303746;
+
+    border-radius: 7px;
+}
+
+
+.regression-title {
+
+    margin-bottom: 12px;
+
+    color: #94a3b8;
+
+    font-size: 11px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+}
+
+
+.regression-equation {
+
+    margin-bottom: 16px;
+
+    color: #f8fafc;
+
+    font-size: 17px;
+
+    font-weight: 700;
+
+    font-family:
+        "Courier New",
+        monospace;
+}
+
+
+.regression-values {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 10px;
+}
+
+
+.regression-value {
+
+    padding: 10px;
+
+    background: #181d27;
+
+    border:
+        1px solid #303746;
+
+    border-radius: 5px;
+
+    text-align: center;
+}
+
+
+.regression-value-label {
+
+    color: #7f8999;
+
+    font-size: 10px;
+}
+
+
+.regression-value-number {
+
+    margin-top: 4px;
+
+    color: #f8fafc;
+
+    font-size: 16px;
+
+    font-weight: 700;
+}
+
+
+.button-row {
+
+    display: flex;
+
+    gap: 12px;
+}
+
+
+.button-row button {
+
+    flex: 1;
+}
+
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    #hud {
+
+        padding:
+            0 12px;
+    }
+
+
+    .hud-left {
+
+        gap: 16px;
+    }
+
+
+    .brand {
+
+        display: none;
+    }
+
+
+    .hud-value {
+
+        font-size: 14px;
+    }
+
+
+    .summary-stats {
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .regression-values {
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .panel {
+
+        padding: 24px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div id="app">
+
+
+<!-- =====================================================
+     HUD
+     ===================================================== -->
+
+<header id="hud">
+
+    <div class="hud-left">
+
+        <div class="brand">
+            AD BLOCKER AGENT
+        </div>
+
+
+        <div class="hud-item">
+
+            <div class="hud-label">
+                Trial
+            </div>
+
+            <div
+                class="hud-value"
+                id="trialValue"
+            >
+                0 / 9
+            </div>
+
+        </div>
+
+
+        <div class="hud-item">
+
+            <div class="hud-label">
+                Clicks
+            </div>
+
+            <div
+                class="hud-value"
+                id="clickValue"
+            >
+                0 / 99
+            </div>
+
+        </div>
+
+
+        <div class="hud-item">
+
+            <div class="hud-label">
+                Valid Measurements
+            </div>
+
+            <div
+                class="hud-value"
+                id="measurementValue"
+            >
+                0 / 90
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+
+<!-- =====================================================
+     Workspace
+     ===================================================== -->
+
+<main id="workspace">
+
+
+    <button id="startTarget">
+        START
+    </button>
+
+
+
+    <!-- =================================================
+         Instruction Overlay
+         ================================================= -->
+
+    <div
+        class="overlay"
+        id="instructionOverlay"
+    >
+
+        <div class="panel">
+
+            <h1>
+                Ad Blocker Agent
+            </h1>
+
+
+            <h2>
+                Fitts' Law Pointing Experiment
+            </h2>
+
+
+            <p>
+
+                You are an Ad Blocker Agent defending
+                a computer system from malicious
+                pop-up advertisements.
+
+            </p>
+
+
+            <ul class="instruction-list">
+
+                <li>
+                    Click the
+                    <strong>red X</strong>
+                    located at the upper-right corner
+                    of each popup.
+                </li>
+
+                <li>
+                    There are
+                    <strong>9 trials</strong>. Each trial requires
+                    <strong>11 successful clicks</strong>.
+                </li>
+
+                <li>
+                    The first click of each trial is excluded from the analysis.
+                    Therefore, each trial produces
+                    <strong>10 valid movement-time
+                    measurements</strong>.
+                </li>
+
+                <li>
+                    Move the mouse directly to the red X
+                    and click as quickly and accurately
+                    as possible.
+                </li>
+
+            </ul>
+
+
+
+            <!-- =================================================
+                 Example Popup
+                 ================================================= -->
+
+            <div class="example-area">
+
+                <div>
+
+                    <div class="example-popup">
+
+                        <div
+                            class="example-popup-titlebar">
+
+                            SYSTEM ALERT
+
+                        </div>
+
+
+                        <div
+                            class="example-popup-body">
+
+                            <div
+                                class="example-warning">
+
+                                MALWARE DETECTED
+
+                            </div>
+
+
+                            <div
+                                class="example-message">
+
+                                Your system may be infected.
+                                Close this advertisement to
+                                continue protecting the system.
+
+                            </div>
+
+
+                            <div class="fake-button">
+
+                                SCAN NOW
+
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="example-target">
+                        </div>
+
+                    </div>
+
+
+                    <div class="example-caption">
+
+                        Example experimental target:
+                        click the red X.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <button
+                class="primary-button"
+                id="beginButton">
+
+                Begin Experiment
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         Summary Overlay
+         ================================================= -->
+
+    <div
+        class="overlay"
+        id="summaryOverlay"
+        style="display:none;"
+    >
+
+        <div
+            class="panel"
+            id="summaryPanel">
+
+
+            <h1>
+                Experiment Complete
+            </h1>
+
+
+            <h2>
+                Ad Blocker Agent — Results
+            </h2>
+
+
+
+            <div class="summary-stats">
+
+
+                <div class="summary-stat">
+
+                    <div
+                        class="summary-stat-label">
+
+                        Trials
+
+                    </div>
+
+
+                    <div
+                        class="summary-stat-value"
+                        id="summaryTrials">
+
+                        9
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="summary-stat">
+
+                    <div
+                        class="summary-stat-label">
+
+                        Valid Measurements
+
+                    </div>
+
+
+                    <div
+                        class="summary-stat-value"
+                        id="summaryMeasurements">
+
+                        90
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- =================================================
+                 Regression
+                 ================================================= -->
+
+            <div class="regression-box">
+
+                <div class="regression-title">
+
+                    Fitts' Law Linear Regression
+
+                </div>
+
+
+                <div
+                    class="regression-equation"
+                    id="regressionEquation">
+
+                    MT = a + b × ID
+
+                </div>
+
+
+                <div class="regression-values">
+
+
+                    <div class="regression-value">
+
+                        <div
+                            class="regression-value-label">
+
+                            a
+
+                        </div>
+
+
+                        <div
+                            class="regression-value-number"
+                            id="regressionA">
+
+                            -
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="regression-value">
+
+                        <div
+                            class="regression-value-label">
+
+                            b
+
+                        </div>
+
+
+                        <div
+                            class="regression-value-number"
+                            id="regressionB">
+
+                            -
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="regression-value">
+
+                        <div
+                            class="regression-value-label">
+
+                            R²
+
+                        </div>
+
+
+                        <div
+                            class="regression-value-number"
+                            id="regressionR2">
+
+                            -
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 Trial Summary
+                 ================================================= -->
+
+            <table id="summaryTable">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Trial
+                        </th>
+
+                        <th>
+                            A (px)
+                        </th>
+
+                        <th>
+                            W (px)
+                        </th>
+
+                        <th>
+                            ID (bits)
+                        </th>
+
+                        <th>
+                            Average MT (ms)
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody
+                    id="summaryTableBody">
+                </tbody>
+
+            </table>
+
+
+
+            <div class="button-row">
+
+
+                <button
+                    class="primary-button"
+                    id="exportButton">
+
+                    Export Data (CSV)
+
+                </button>
+
+
+                <button
+                    class="secondary-button"
+                    id="restartButton">
+
+                    Restart Experiment
+
+                </button>
+
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+</main>
+
+
+</div>
+
+
+
+<script>
+
+"use strict";
+
+
+/* ============================================================
+   Experimental Configuration
+   ============================================================ */
+
+/*
+ * Experimental design:
+ *
+ * 9 trials
+ * Each trial = 11 successful clicks
+ *
+ * Click 1:
+ *     excluded from analysis
+ *
+ * Clicks 2–11:
+ *     valid movement-time measurements
+ *
+ * Therefore:
+ *
+ * 9 × 11 = 99 total target clicks
+ *
+ * 9 × 10 = 90 valid measurements
+ *
+ * Each trial corresponds to one A/W condition.
+ */
+
+const CONDITIONS = [
+    { id: 1, A: 100, W: 80 },
+    { id: 2, A: 150, W: 80 },
+    { id: 3, A: 150, W: 60 },
+    { id: 4, A: 200, W: 60 },
+    { id: 5, A: 250, W: 60 },
+    { id: 6, A: 250, W: 50 },
+    { id: 7, A: 300, W: 50 },
+    { id: 8, A: 350, W: 40 },
+    { id: 9, A: 450, W: 40 }
+];
+
+const TOTAL_TRIALS = 9;
+
+
+const CLICKS_PER_TRIAL = 11;
+
+
+const VALID_MEASUREMENTS_PER_TRIAL = 10;
+
+
+const TOTAL_CLICKS =
+    TOTAL_TRIALS *
+    CLICKS_PER_TRIAL;
+
+
+const TOTAL_VALID_MEASUREMENTS =
+    TOTAL_TRIALS *
+    VALID_MEASUREMENTS_PER_TRIAL;
+
+
+
+/* ============================================================
+   Fitts' Law ID
+   ============================================================ */
+
+/*
+ * Shannon formulation:
+ *
+ * ID = log2(A / W + 1)
+ *
+ * The regression model is:
+ *
+ * MT = a + b × ID
+ */
+
+function calculateID(A, W) {
+
+    return Math.log2(
+        A / W + 1
+    );
+
+}
+
+
+CONDITIONS.forEach(condition => {
+
+    condition.ID =
+        calculateID(
+            condition.A,
+            condition.W
+        );
+
+});
+
+
+
+/* ============================================================
+   DOM References
+   ============================================================ */
+
+const workspace =
+    document.getElementById(
+        "workspace"
+    );
+
+
+const startTarget =
+    document.getElementById(
+        "startTarget"
+    );
+
+
+const instructionOverlay =
+    document.getElementById(
+        "instructionOverlay"
+    );
+
+
+const summaryOverlay =
+    document.getElementById(
+        "summaryOverlay"
+    );
+
+
+const beginButton =
+    document.getElementById(
+        "beginButton"
+    );
+
+
+const exportButton =
+    document.getElementById(
+        "exportButton"
+    );
+
+
+const restartButton =
+    document.getElementById(
+        "restartButton"
+    );
+
+
+const trialValue =
+    document.getElementById(
+        "trialValue"
+    );
+
+
+const clickValue =
+    document.getElementById(
+        "clickValue"
+    );
+
+
+const measurementValue =
+    document.getElementById(
+        "measurementValue"
+    );
+
+
+const summaryTrials =
+    document.getElementById(
+        "summaryTrials"
+    );
+
+
+const summaryMeasurements =
+    document.getElementById(
+        "summaryMeasurements"
+    );
+
+
+const summaryTableBody =
+    document.getElementById(
+        "summaryTableBody"
+    );
+
+
+const regressionEquation =
+    document.getElementById(
+        "regressionEquation"
+    );
+
+
+const regressionA =
+    document.getElementById(
+        "regressionA"
+    );
+
+
+const regressionB =
+    document.getElementById(
+        "regressionB"
+    );
+
+
+const regressionR2 =
+    document.getElementById(
+        "regressionR2"
+    );
+
+
+
+/* ============================================================
+   Experiment State
+   ============================================================ */
+
+let experimentRunning =
+    false;
+
+
+/*
+ * currentTrial:
+ *
+ * 0 = Trial 1
+ * 1 = Trial 2
+ * ...
+ * 8 = Trial 9
+ */
+
+let currentTrial =
+    0;
+
+
+/*
+ * Number of successful target clicks
+ * within the current trial.
+ *
+ * 0 → before first target click
+ * 1 → first click
+ * ...
+ * 11 → trial complete
+ */
+
+let clicksInCurrentTrial =
+    0;
+
+
+let totalClicks =
+    0;
+
+
+let trialData =
+    [];
+
+
+let previousTargetCenter =
+    null;
+
+
+let movementStartTime =
+    null;
+
+
+let currentPopup =
+    null;
+
+
+let currentTarget =
+    null;
+
+
+
+/* ============================================================
+   Popup Dimensions
+   ============================================================ */
+
+/*
+ * The popup scales proportionally with W.
+ *
+ * Reference:
+ *
+ * W = 50 px
+ * Popup = 360 × 220 px
+ *
+ * The X target is always exactly:
+ *
+ * W × W
+ */
+
+function getPopupDimensions(W) {
+
+    const scale =
+        W / 50;
+
+
+    const width =
+        360 * scale;
+
+
+    const height =
+        220 * scale;
+
+
+    return {
+
+        width,
+
+        height,
+
+        scale
+
+    };
+
+}
+
+
+
+/* ============================================================
+   Popup Position
+   ============================================================ */
+
+function popupPositionForTargetCenter(
+    centerX,
+    centerY,
+    popupWidth,
+    popupHeight,
+    W
+) {
+
+    return {
+
+        /*
+         * The X target occupies the upper-right
+         * corner of the popup.
+         *
+         * Therefore the target center is:
+         *
+         * popup right - W/2
+         * popup top + W/2
+         */
+
+        left:
+            centerX -
+            popupWidth +
+            W / 2,
+
+        top:
+            centerY -
+            W / 2
+
+    };
+
+}
+
+
+
+/* ============================================================
+   Popup Boundary Check
+   ============================================================ */
+
+function isPopupInsideWorkspace(
+    left,
+    top,
+    popupWidth,
+    popupHeight
+) {
+
+    const width =
+        workspace.clientWidth;
+
+
+    const height =
+        workspace.clientHeight;
+
+
+    return (
+
+        left >= 0 &&
+
+        top >= 0 &&
+
+        left + popupWidth <= width &&
+
+        top + popupHeight <= height
+
+    );
+
+}
+
+
+
+/* ============================================================
+   Find Valid Target Center
+   ============================================================ */
+
+function findValidTargetCenter(
+    previousCenter,
+    A,
+    W
+) {
+
+    const popupSize =
+        getPopupDimensions(W);
+
+
+    const popupWidth =
+        popupSize.width;
+
+
+    const popupHeight =
+        popupSize.height;
+
+
+    const workspaceWidth =
+        workspace.clientWidth;
+
+
+    const workspaceHeight =
+        workspace.clientHeight;
+
+
+    const randomOffset =
+        Math.random() *
+        Math.PI *
+        2;
+
+
+    /*
+     * Test many possible directions.
+     *
+     * Every accepted target center is EXACTLY
+     * A pixels away from the previous target center.
+     */
+
+    const candidateCount =
+        720;
+
+
+    for (
+        let i = 0;
+        i < candidateCount;
+        i++
+    ) {
+
+        const angle =
+            randomOffset +
+            (
+                i /
+                candidateCount
+            ) *
+            Math.PI *
+            2;
+
+
+        const dx =
+            A *
+            Math.cos(angle);
+
+
+        const dy =
+            A *
+            Math.sin(angle);
+
+
+        const centerX =
+            previousCenter.x +
+            dx;
+
+
+        const centerY =
+            previousCenter.y +
+            dy;
+
+
+        /*
+         * Make sure the X target itself
+         * remains inside the workspace.
+         */
+
+        if (
+
+            centerX - W / 2 < 0 ||
+
+            centerX + W / 2 >
+                workspaceWidth ||
+
+            centerY - W / 2 < 0 ||
+
+            centerY + W / 2 >
+                workspaceHeight
+
+        ) {
+
+            continue;
+
+        }
+
+
+        const popupPosition =
+            popupPositionForTargetCenter(
+
+                centerX,
+                centerY,
+
+                popupWidth,
+                popupHeight,
+
+                W
+
+            );
+
+
+        /*
+         * Make sure the COMPLETE popup
+         * remains inside the workspace.
+         */
+
+        if (
+
+            isPopupInsideWorkspace(
+
+                popupPosition.left,
+                popupPosition.top,
+
+                popupWidth,
+                popupHeight
+
+            )
+
+        ) {
+
+            return {
+
+                x:
+                    centerX,
+
+                y:
+                    centerY,
+
+                popupLeft:
+                    popupPosition.left,
+
+                popupTop:
+                    popupPosition.top,
+
+                popupWidth:
+                    popupWidth,
+
+                popupHeight:
+                    popupHeight,
+
+                scale:
+                    popupSize.scale
+
+            };
+
+        }
+
+    }
+
+
+    throw new Error(
+        "Unable to place target while maintaining exact A."
+    );
+
+}
+
+
+
+/* ============================================================
+   Create Popup
+   ============================================================ */
+
+function createPopup(
+    condition,
+    targetGeometry
+) {
+
+    removeCurrentPopup();
+
+
+    const popup =
+        document.createElement(
+            "div"
+        );
+
+
+    popup.className =
+        "popup";
+
+
+    /*
+     * Set proportional scale.
+     */
+
+    popup.style.setProperty(
+    "--target-width",
+    `${condition.W}px`
+);
+
+    popup.style.setProperty(
+    "--scale",
+    `${targetGeometry.scale}`
+);
+
+
+    popup.style.width =
+        `${targetGeometry.popupWidth}px`;
+
+
+    popup.style.height =
+        `${targetGeometry.popupHeight}px`;
+
+
+    popup.style.left =
+        `${targetGeometry.popupLeft}px`;
+
+
+    popup.style.top =
+        `${targetGeometry.popupTop}px`;
+
+
+    popup.innerHTML = `
+
+        <div class="popup-titlebar">
+
+            SYSTEM ALERT
+
+        </div>
+
+
+        <div class="popup-body">
+
+            <div class="warning">
+
+                MALWARE DETECTED
+
+            </div>
+
+
+            <div class="popup-message">
+
+                Your system may be infected.
+                Close this advertisement to
+                continue protecting the system.
+
+            </div>
+
+
+            <div class="fake-button">
+
+                SCAN NOW
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    /*
+     * Actual experimental target.
+     */
+
+    const target =
+        document.createElement(
+            "button"
+        );
+
+
+    target.className =
+        "close-target";
+
+
+    target.type =
+        "button";
+
+
+    /*
+     * EXACT W × W
+     */
+
+    target.style.width =
+        `${condition.W}px`;
+
+
+    target.style.height =
+        `${condition.W}px`;
+
+
+    target.style.right =
+        "0px";
+
+
+    target.style.top =
+        "0px";
+
+
+    target.style.setProperty(
+        "--target-width",
+        `${condition.W}px`
+    );
+
+
+    target.addEventListener(
+        "click",
+        handleTargetClick
+    );
+
+
+    popup.appendChild(
+        target
+    );
+
+
+    workspace.appendChild(
+        popup
+    );
+
+
+    currentPopup =
+        popup;
+
+
+    currentTarget =
+        target;
+
+
+    /*
+     * The target center is mathematically
+     * determined by targetGeometry.
+     */
+
+    previousTargetCenter = {
+
+        x:
+            targetGeometry.x,
+
+        y:
+            targetGeometry.y
+
+    };
+
+}
+
+
+
+/* ============================================================
+   Remove Popup
+   ============================================================ */
+
+function removeCurrentPopup() {
+
+    if (currentPopup) {
+
+        currentPopup.remove();
+
+        currentPopup =
+            null;
+
+        currentTarget =
+            null;
+
+    }
+
+}
+
+
+
+/* ============================================================
+   Position START Target
+   ============================================================ */
+
+function positionStartTarget() {
+
+    const workspaceWidth =
+        workspace.clientWidth;
+
+    const workspaceHeight =
+        workspace.clientHeight;
+
+    // Workspace 正中央
+    const x =
+        workspaceWidth * 0.5;
+
+    const y =
+        workspaceHeight * 0.5;
+
+    startTarget.style.left =
+        `${x - 32}px`;
+
+    startTarget.style.top =
+        `${y - 32}px`;
+
+    return {
+
+        x,
+
+        y
+
+    };
+
+}
+
+
+
+/* ============================================================
+   Start Experiment
+   ============================================================ */
+
+function startExperiment() {
+
+    experimentRunning =
+        true;
+
+
+    /*
+     * Start at Trial 1.
+     */
+
+    currentTrial =
+        0;
+
+
+    clicksInCurrentTrial =
+        0;
+
+
+    totalClicks =
+        0;
+
+
+    trialData =
+        [];
+
+
+    previousTargetCenter =
+        null;
+
+
+    movementStartTime =
+        null;
+
+
+    removeCurrentPopup();
+
+
+    instructionOverlay.style.display =
+        "none";
+
+
+    summaryOverlay.style.display =
+        "none";
+
+
+    /*
+     * START appears only once.
+     */
+
+    startTarget.classList.remove(
+        "hidden"
+    );
+
+
+    positionStartTarget();
+
+
+    updateHUD();
+
+}
+
+
+
+/* ============================================================
+   START Click
+   ============================================================ */
+
+function handleStartClick() {
+
+    if (!experimentRunning) {
+
+        return;
+
+    }
+
+
+    /*
+     * START is pressed only ONCE.
+     *
+     * It does NOT count as one of the
+     * 11 successful clicks of Trial 1.
+     */
+
+    const t0 =
+        performance.now();
+
+
+    previousTargetCenter =
+        positionStartTarget();
+
+
+    startTarget.classList.add(
+        "hidden"
+    );
+
+
+    /*
+     * Trial 1 uses Condition 1.
+     */
+
+    clicksInCurrentTrial =
+        0;
+
+
+    /*
+     * The first target of Trial 1 is shown.
+     *
+     * Its click will be Click 1 of Trial 1
+     * and will be excluded from analysis.
+     */
+
+    showNextTarget(t0);
+
+
+    updateHUD();
+
+}
+
+
+
+/* ============================================================
+   Show Next Target
+   ============================================================ */
+
+function showNextTarget(t0) {
+
+    const condition =
+        CONDITIONS[currentTrial];
+
+
+    /*
+     * Target center is exactly A pixels away
+     * from the previous target center.
+     */
+
+    const geometry =
+        findValidTargetCenter(
+
+            previousTargetCenter,
+
+            condition.A,
+
+            condition.W
+
+        );
+
+
+    /*
+     * Movement time begins when the previous
+     * successful click was captured.
+     */
+
+    movementStartTime =
+        t0;
+
+
+    createPopup(
+        condition,
+        geometry
+    );
+
+}
+
+
+
+/* ============================================================
+   Target Click
+   ============================================================ */
+
+function handleTargetClick() {
+
+    if (
+
+        !experimentRunning ||
+
+        !currentTarget
+
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+     * Capture t1 immediately.
+     */
+
+    const t1 =
+        performance.now();
+
+
+    const MT =
+        t1 -
+        movementStartTime;
+
+
+    /*
+     * Count this successful click.
+     */
+
+    clicksInCurrentTrial++;
+
+    totalClicks++;
+
+
+    const condition =
+        CONDITIONS[currentTrial];
+
+
+    /*
+     * ========================================================
+     * FIRST CLICK OF EACH TRIAL
+     * ========================================================
+     *
+     * This click is intentionally excluded.
+     *
+     * Its travel distance differs from the
+     * remaining movements in the trial.
+     */
+
+    if (
+        clicksInCurrentTrial === 1
+    ) {
+
+        removeCurrentPopup();
+
+
+        /*
+         * The next movement starts from this click.
+         *
+         * Click 2 will therefore be the first
+         * valid measurement.
+         */
+
+        showNextTarget(t1);
+
+
+        updateHUD();
+
+
+        return;
+
+    }
+
+
+    /*
+     * ========================================================
+     * CLICKS 2–11
+     * ========================================================
+     *
+     * These are valid Fitts' Law measurements.
+     */
+
+    trialData.push({
+
+        Trial:
+            currentTrial + 1,
+
+        Condition_ID:
+            condition.id,
+
+        Distance_A:
+            condition.A,
+
+        Width_W:
+            condition.W,
+
+        Index_of_Difficulty_ID:
+            condition.ID,
+
+        Movement_Time_MT_ms:
+            MT
+
+    });
+
+
+    /*
+     * Remove the popup only after t1
+     * has been captured.
+     */
+
+    removeCurrentPopup();
+
+
+    updateHUD();
+
+
+    /*
+     * ========================================================
+     * TRIAL COMPLETE
+     * ========================================================
+     *
+     * Click 11 has just been completed.
+     */
+
+    if (
+        clicksInCurrentTrial >=
+        CLICKS_PER_TRIAL
+    ) {
+
+        finishCurrentTrial(t1);
+
+        return;
+
+    }
+
+
+    /*
+     * ========================================================
+     * NEXT MOVEMENT WITHIN SAME TRIAL
+     * ========================================================
+     *
+     * Clicks 2–11 all use the same A/W condition.
+     */
+
+    showNextTarget(t1);
+
+}
+
+
+
+/* ============================================================
+   Finish Current Trial
+   ============================================================ */
+
+function finishCurrentTrial(t1) {
+
+    /*
+     * Every trial must contain exactly:
+     *
+     * 1 excluded click
+     * +
+     * 10 valid clicks
+     *
+     * =
+     * 11 successful clicks
+     */
+
+    if (
+        clicksInCurrentTrial !==
+        CLICKS_PER_TRIAL
+    ) {
+
+        console.error(
+
+            `Trial ${currentTrial + 1} ` +
+            `ended with ` +
+            `${clicksInCurrentTrial} clicks.`
+
+        );
+
+    }
+
+
+    /*
+     * If Trial 9 has finished,
+     * finish the entire experiment.
+     */
+
+    if (
+        currentTrial >=
+        TOTAL_TRIALS - 1
+    ) {
+
+        finishExperiment();
+
+        return;
+
+    }
+
+
+    /*
+     * Move immediately to the next trial.
+     *
+     * NO new START click.
+     */
+
+    currentTrial++;
+
+
+    clicksInCurrentTrial =
+        0;
+
+
+    /*
+     * The next trial's first target is placed
+     * relative to the previous trial's last target.
+     *
+     * Its first click will be excluded because
+     * the A distance is changing between trials.
+     */
+
+    showNextTarget(t1);
+
+
+    updateHUD();
+
+}
+
+
+
+/* ============================================================
+   HUD
+   ============================================================ */
+
+function updateHUD() {
+
+    /*
+     * currentTrial is zero-based.
+     *
+     * Before experiment:
+     * 0 / 9
+     *
+     * During Trial 1:
+     * 1 / 9
+     */
+
+    let displayedTrial = 0;
+
+
+    if (experimentRunning) {
+
+        displayedTrial =
+            currentTrial + 1;
+
+    }
+
+
+    if (
+        totalClicks >= TOTAL_CLICKS
+    ) {
+
+        displayedTrial =
+            TOTAL_TRIALS;
+
+    }
+
+
+    trialValue.textContent =
+
+        `${displayedTrial} / ` +
+        `${TOTAL_TRIALS}`;
+
+
+    clickValue.textContent =
+
+        `${totalClicks} / ` +
+        `${TOTAL_CLICKS}`;
+
+
+    measurementValue.textContent =
+
+        `${trialData.length} / ` +
+        `${TOTAL_VALID_MEASUREMENTS}`;
+
+}
+
+
+
+/* ============================================================
+   Calculate Trial Averages
+   ============================================================ */
+
+function calculateTrialAverages() {
+
+    return CONDITIONS.map(
+        (condition, index) => {
+
+            const trialNumber =
+                index + 1;
+
+
+            const measurements =
+                trialData.filter(
+
+                    data =>
+
+                        data.Trial ===
+                        trialNumber
+
+                );
+
+
+            if (
+                measurements.length === 0
+            ) {
+
+                return {
+
+                    trial:
+                        trialNumber,
+
+                    condition,
+
+                    averageDistance:
+                        condition.A,
+
+                    width:
+                        condition.W,
+
+                    ID:
+                        condition.ID,
+
+                    averageMT:
+                        NaN,
+
+                    count:
+                        0
+
+                };
+
+            }
+
+
+            const totalMT =
+                measurements.reduce(
+
+                    (sum, data) =>
+
+                        sum +
+                        data.Movement_Time_MT_ms,
+
+                    0
+
+                );
+
+
+            const averageMT =
+                totalMT /
+                measurements.length;
+
+
+            return {
+
+                trial:
+                    trialNumber,
+
+                condition,
+
+                averageDistance:
+                    condition.A,
+
+                width:
+                    condition.W,
+
+                ID:
+                    condition.ID,
+
+                averageMT,
+
+                count:
+                    measurements.length
+
+            };
+
+        }
+    );
+
+}
+
+
+
+/* ============================================================
+   Fitts' Law Regression
+   ============================================================ */
+
+/*
+ * Regression model:
+ *
+ * MT = a + b × ID
+ *
+ * where:
+ *
+ * ID = log2(A / W + 1)
+ *
+ * There are 9 trial-level average MT values.
+ */
+
+function calculateFittsRegression(
+    averages
+) {
+
+    const validResults =
+        averages.filter(
+
+            result =>
+
+                Number.isFinite(
+                    result.averageMT
+                )
+
+        );
+
+
+    if (
+        validResults.length < 2
+    ) {
+
+        return null;
+
+    }
+
+
+    const x =
+        validResults.map(
+            result => result.ID
+        );
+
+
+    const y =
+        validResults.map(
+            result => result.averageMT
+        );
+
+
+    const n =
+        x.length;
+
+
+    const meanX =
+        x.reduce(
+            (sum, value) =>
+                sum + value,
+            0
+        ) / n;
+
+
+    const meanY =
+        y.reduce(
+            (sum, value) =>
+                sum + value,
+            0
+        ) / n;
+
+
+    let numerator = 0;
+
+    let denominator = 0;
+
+
+    for (
+        let i = 0;
+        i < n;
+        i++
+    ) {
+
+        numerator +=
+
+            (
+                x[i] -
+                meanX
+            ) *
+
+            (
+                y[i] -
+                meanY
+            );
+
+
+        denominator +=
+
+            Math.pow(
+                x[i] -
+                meanX,
+                2
+            );
+
+    }
+
+
+    if (
+        denominator === 0
+    ) {
+
+        return null;
+
+    }
+
+
+    /*
+     * Slope b
+     */
+
+    const b =
+        numerator /
+        denominator;
+
+
+    /*
+     * Intercept a
+     */
+
+    const a =
+        meanY -
+        b * meanX;
+
+
+    /*
+     * Calculate R².
+     */
+
+    let ssTotal = 0;
+
+    let ssResidual = 0;
+
+
+    for (
+        let i = 0;
+        i < n;
+        i++
+    ) {
+
+        const predicted =
+            a +
+            b * x[i];
+
+
+        ssTotal +=
+
+            Math.pow(
+                y[i] -
+                meanY,
+                2
+            );
+
+
+        ssResidual +=
+
+            Math.pow(
+                y[i] -
+                predicted,
+                2
+            );
+
+    }
+
+
+    let r2;
+
+
+    if (
+        ssTotal === 0
+    ) {
+
+        r2 = 1;
+
+    } else {
+
+        r2 =
+            1 -
+            (
+                ssResidual /
+                ssTotal
+            );
+
+    }
+
+
+    return {
+
+        a,
+
+        b,
+
+        r2,
+
+        n
+
+    };
+
+}
+
+
+
+/* ============================================================
+   Finish Experiment
+   ============================================================ */
+
+function finishExperiment() {
+
+    experimentRunning =
+        false;
+
+
+    removeCurrentPopup();
+
+
+    startTarget.classList.add(
+        "hidden"
+    );
+
+
+    /*
+     * Verify total click count.
+     */
+
+    if (
+        totalClicks !==
+        TOTAL_CLICKS
+    ) {
+
+        console.error(
+
+            "Unexpected total click count:",
+
+            totalClicks
+
+        );
+
+    }
+
+
+    /*
+     * Verify valid measurement count.
+     */
+
+    if (
+        trialData.length !==
+        TOTAL_VALID_MEASUREMENTS
+    ) {
+
+        console.error(
+
+            "Unexpected valid measurement count:",
+
+            trialData.length
+
+        );
+
+    }
+
+
+    buildSummary();
+
+
+    summaryOverlay.style.display =
+        "flex";
+
+}
+
+
+
+/* ============================================================
+   Build Summary
+   ============================================================ */
+
+function buildSummary() {
+
+    const averages =
+        calculateTrialAverages();
+
+
+    const regression =
+        calculateFittsRegression(
+            averages
+        );
+
+
+    summaryTrials.textContent =
+        TOTAL_TRIALS;
+
+
+    summaryMeasurements.textContent =
+        trialData.length;
+
+
+    summaryTableBody.innerHTML =
+        "";
+
+
+    averages.forEach(
+        result => {
+
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+
+            const averageMT =
+                Number.isFinite(
+                    result.averageMT
+                )
+
+                    ? result.averageMT.toFixed(3)
+
+                    : "-";
+
+
+            row.innerHTML = `
+
+                <td>
+                    Trial ${result.trial}
+                </td>
+
+                <td>
+                    ${result.averageDistance}
+                </td>
+
+                <td>
+                    ${result.width}
+                </td>
+
+                <td>
+                    ${result.ID.toFixed(3)}
+                </td>
+
+                <td>
+                    ${averageMT}
+                </td>
+
+            `;
+
+
+            summaryTableBody.appendChild(
+                row
+            );
+
+        }
+    );
+
+
+    /*
+     * Display regression.
+     */
+
+    if (regression) {
+
+        const sign =
+            regression.b >= 0
+                ? "+"
+                : "-";
+
+
+        regressionEquation.textContent =
+
+            `MT = ${regression.a.toFixed(3)} ` +
+            `${sign} ` +
+            `${Math.abs(regression.b).toFixed(3)} × ID`;
+
+
+        regressionA.textContent =
+            regression.a.toFixed(3);
+
+
+        regressionB.textContent =
+            regression.b.toFixed(3);
+
+
+        regressionR2.textContent =
+            regression.r2.toFixed(4);
+
+    } else {
+
+        regressionEquation.textContent =
+            "MT = a + b × ID";
+
+
+        regressionA.textContent =
+            "-";
+
+
+        regressionB.textContent =
+            "-";
+
+
+        regressionR2.textContent =
+            "-";
+
+    }
+
+}
+
+
+
+/* ============================================================
+   CSV Export
+   ============================================================ */
+
+/*
+ * CSV contains exactly 9 rows:
+ *
+ * one row for each trial / A-W condition.
+ *
+ * Columns:
+ *
+ * Trial
+ * Average Distance (pixels)
+ * Width (pixels)
+ * Index of Difficulty (bits)
+ * Average Time (milliseconds)
+ *
+ * Average Time is calculated from the
+ * 10 VALID clicks in each trial.
+ */
+
+function exportCSV() {
+
+    const averages =
+        calculateTrialAverages();
+
+
+    const headers = [
+
+        "Trial",
+
+        "Average Distance (pixels)",
+
+        "Width (pixels)",
+
+        "Index of Difficulty (bits)",
+
+        "Average Time (milliseconds)"
+
+    ];
+
+
+    const rows = [
+
+        headers
+
+    ];
+
+
+    averages.forEach(
+        result => {
+
+            rows.push([
+
+                `Trial ${result.trial}`,
+
+                result.averageDistance,
+
+                result.width,
+
+                result.ID.toFixed(6),
+
+                Number.isFinite(
+                    result.averageMT
+                )
+
+                    ? result.averageMT.toFixed(6)
+
+                    : ""
+
+            ]);
+
+        }
+    );
+
+
+    /*
+     * Convert to CSV.
+     */
+
+    const csv =
+
+        rows
+
+            .map(
+
+                row =>
+
+                    row
+
+                        .map(
+
+                            value => {
+
+                                const text =
+                                    String(value);
+
+
+                                if (
+
+                                    text.includes(",") ||
+
+                                    text.includes('"') ||
+
+                                    text.includes("\n")
+
+                                ) {
+
+                                    return (
+
+                                        '"' +
+
+                                        text.replace(
+                                            /"/g,
+                                            '""'
+                                        ) +
+
+                                        '"'
+
+                                    );
+
+                                }
+
+
+                                return text;
+
+                            }
+
+                        )
+
+                        .join(",")
+
+            )
+
+            .join("\r\n");
+
+
+    /*
+     * UTF-8 BOM for Excel.
+     */
+
+    const blob =
+        new Blob(
+
+            [
+
+                "\uFEFF" +
+
+                csv
+
+            ],
+
+            {
+
+                type:
+                    "text/csv;charset=utf-8;"
+
+            }
+
+        );
+
+
+    const url =
+        URL.createObjectURL(
+            blob
+        );
+
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+
+    link.href =
+        url;
+
+
+    link.download =
+        "fitts_law_ad_blocker_results.csv";
+
+
+    document.body.appendChild(
+        link
+    );
+
+
+    link.click();
+
+
+    link.remove();
+
+
+    URL.revokeObjectURL(
+        url
+    );
+
+}
+
+
+
+/* ============================================================
+   Restart
+   ============================================================ */
+
+function restartExperiment() {
+
+    summaryOverlay.style.display =
+        "none";
+
+
+    removeCurrentPopup();
+
+    experimentRunning =
+        false;
+
+    currentTrial =
+        0;
+
+    clicksInCurrentTrial =
+        0;
+
+    totalClicks =
+        0;
+
+    trialData =
+        [];
+
+    previousTargetCenter =
+        null;
+
+    movementStartTime =
+        null;
+
+    startTarget.classList.remove(
+        "hidden"
+    );
+
+    positionStartTarget();
+
+    instructionOverlay.style.display =
+        "flex";
+
+    updateHUD();
+
+}
+
+
+
+/* ============================================================
+   Event Listeners
+   ============================================================ */
+
+beginButton.addEventListener(
+    "click",
+    startExperiment
+);
+
+
+startTarget.addEventListener(
+    "click",
+    handleStartClick
+);
+
+
+exportButton.addEventListener(
+    "click",
+    exportCSV
+);
+
+
+restartButton.addEventListener(
+    "click",
+    restartExperiment
+);
+
+
+
+/* ============================================================
+   Initial Setup
+   ============================================================ */
+
+positionStartTarget();
+
+updateHUD();
+
+</script>
+
+
+</body>
+
+</html>

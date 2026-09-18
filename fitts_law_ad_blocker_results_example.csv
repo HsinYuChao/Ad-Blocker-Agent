@@ -1,0 +1,10 @@
+﻿Trial,Average Distance (pixels),Width (pixels),Index of Difficulty (bits),Average Time (milliseconds)
+Trial 1,100,80,1.169925,515.37
+Trial 2,150,80,1.523562,548.69
+Trial 3,150,60,1.807355,627.33
+Trial 4,200,60,2.115477,622.86
+Trial 5,250,60,2.369234,632.6
+Trial 6,250,50,2.584963,763.02
+Trial 7,300,50,2.807355,737.63
+Trial 8,350,40,3.285402,800.63
+Trial 9,450,40,3.61471,879.41
