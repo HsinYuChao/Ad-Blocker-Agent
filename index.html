@@ -459,6 +459,124 @@ body {
 
 
 /* =========================================================
+   Homepage Information
+   ========================================================= */
+
+#instructionOverlay {
+    overflow-y: auto;
+    padding: 30px 20px;
+}
+
+.home-panel {
+    width: min(980px, calc(100vw - 40px));
+    max-height: calc(100vh - 60px);
+    overflow-y: auto;
+}
+
+.home-intro {
+    color: #cbd5e1;
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 22px;
+}
+
+.info-section {
+    margin: 28px 0 0;
+    padding-top: 24px;
+    border-top: 1px solid #303746;
+}
+
+.info-section h3 {
+    margin: 0 0 10px;
+    color: #7dd3fc;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+}
+
+.info-section p,
+.info-section li {
+    color: #cbd5e1;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.info-section p {
+    margin: 8px 0;
+}
+
+.info-section ul {
+    margin: 10px 0 0;
+    padding-left: 20px;
+}
+
+.demo-video {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    margin-top: 16px;
+    border: 1px solid #394252;
+    border-radius: 8px;
+    background: #0b0f15;
+}
+
+.demo-video iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: 0;
+    border-radius: 7px;
+}
+
+.demo-link {
+    display: inline-block;
+    margin-top: 10px;
+    color: #7dd3fc;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.demo-link:hover {
+    text-decoration: underline;
+}
+
+.analysis-image {
+    display: block;
+    width: 100%;
+    max-width: 760px;
+    margin: 16px auto 8px;
+    border: 1px solid #394252;
+    border-radius: 7px;
+    background: #fff;
+}
+
+.equation-box {
+    margin: 14px 0;
+    padding: 12px 16px;
+    background: #11161f;
+    border: 1px solid #303746;
+    border-radius: 7px;
+    color: #f8fafc;
+    font-family: "Courier New", monospace;
+    text-align: center;
+}
+
+.source-note {
+    color: #7f8999 !important;
+    font-size: 11px !important;
+}
+
+@media (max-width: 700px) {
+    #instructionOverlay {
+        padding: 15px 10px;
+    }
+
+    .home-panel {
+        width: calc(100vw - 20px);
+        max-height: calc(100vh - 30px);
+        padding: 22px;
+    }
+}
+
+/* =========================================================
    Example Popup
    ========================================================= */
 
@@ -1164,58 +1282,208 @@ body {
         id="instructionOverlay"
     >
 
-        <div class="panel">
+        <div class="panel home-panel">
 
             <h1>
                 Ad Blocker Agent
             </h1>
 
-
             <h2>
                 Fitts' Law Pointing Experiment
             </h2>
 
-
-            <p>
-
-                You are an Ad Blocker Agent defending
-                a computer system from malicious
-                pop-up advertisements.
-
+            <p class="home-intro">
+                This interactive experiment transforms the traditional Fitts' Law
+                pointing task into a realistic computer-use scenario. You play the
+                role of an Ad Blocker Agent and must quickly close simulated
+                malicious pop-up advertisements by clicking the red
+                <strong>“X”</strong> button.
             </p>
 
+            <!-- =================================================
+                 Scenario
+                 ================================================= -->
 
-            <ul class="instruction-list">
+            <section class="info-section">
+                <h3>Scenario</h3>
 
-                <li>
-                    Click the
-                    <strong>red X</strong>
-                    located at the upper-right corner
-                    of each popup.
-                </li>
+                <p>
+                    Closing pop-up windows is a common computer interaction that
+                    can become frustrating when the close button is small or
+                    difficult to reach. The Ad Blocker Agent scenario models this
+                    everyday task: malicious advertisement pop-ups continuously
+                    appear, and the user must locate and click the
+                    <strong>“X”</strong> in the upper-right corner.
+                </p>
 
-                <li>
-                    There are
-                    <strong>9 trials</strong>. Each trial requires
-                    <strong>11 successful clicks</strong>.
-                </li>
+                <p>
+                    The repeated interaction provides a natural context for
+                    measuring pointing performance while systematically varying
+                    target distance (<strong>A</strong>) and target width
+                    (<strong>W</strong>).
+                </p>
+            </section>
 
-                <li>
-                    The first click of each trial is excluded from the analysis.
-                    Therefore, each trial produces
-                    <strong>10 valid movement-time
-                    measurements</strong>.
-                </li>
+            <!-- =================================================
+                 Innovation
+                 ================================================= -->
 
-                <li>
-                    Move the mouse directly to the red X
-                    and click as quickly and accurately
-                    as possible.
-                </li>
+            <section class="info-section">
+                <h3>Innovation</h3>
 
-            </ul>
+                <p>
+                    The experiment applies Fitts' Law to a familiar pop-up
+                    interaction rather than presenting an abstract pointing task.
+                    The close button is always positioned at the upper-right
+                    corner of the pop-up, while the pop-up size changes with the
+                    target width.
+                </p>
 
+                <p>
+                    This design also explores the relationship between target
+                    boundaries and the <strong>Infinite Edge Effect</strong>.
+                    A target placed at the edge or corner of a display can be
+                    easier to acquire because the screen boundary prevents the
+                    cursor from overshooting. Small pop-up windows generally do
+                    not receive the same benefit, which raises the design question:
+                    could a small window boundary provide some form of interaction
+                    assistance without simply enlarging the close button?
+                </p>
+            </section>
 
+            <!-- =================================================
+                 Application
+                 ================================================= -->
+
+            <section class="info-section">
+                <h3>Application</h3>
+
+                <p>
+                    This experiment investigates a broader HCI problem:
+                    frequently accessed small controls can require unnecessary
+                    pointing precision and effort. The design could be extended
+                    to notifications, dialogs, floating tools, and other
+                    temporary interfaces that require users to repeatedly locate
+                    and close small controls.
+                </p>
+
+                <p>
+                    A possible future design is a subtle boundary-based
+                    interaction constraint, such as cursor resistance near the
+                    edge of a small pop-up window. The goal would be to guide the
+                    cursor toward frequently used controls while keeping the
+                    visible target size unchanged.
+                </p>
+            </section>
+
+            <!-- =================================================
+                 Demo Video
+                 ================================================= -->
+
+            <section class="info-section">
+                <h3>Demo Video</h3>
+
+                <p>
+                    The video below demonstrates the Ad Blocker Agent experiment
+                    and the interaction used to collect the Fitts' Law data.
+                </p>
+
+                <div class="demo-video">
+                    <iframe
+                        src="https://drive.google.com/file/d/1JBNYiog-bjBaocaBt3ffuINA0M70Og6a/preview"
+                        title="Ad Blocker Agent Demo Video"
+                        allow="autoplay"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+
+                <a
+                    class="demo-link"
+                    href="https://drive.google.com/file/d/1JBNYiog-bjBaocaBt3ffuINA0M70Og6a/view?usp=sharing"
+                    target="_blank"
+                    rel="noopener noreferrer">
+                    Open Demo Video in Google Drive
+                </a>
+            </section>
+
+            <!-- =================================================
+                 Experiment / Analysis
+                 ================================================= -->
+
+            <section class="info-section">
+                <h3>Experiment &amp; Data Analysis</h3>
+
+                <p>
+                    The experiment contains <strong>9 trials</strong>. Each trial
+                    requires 11 successful clicks; the first click is excluded
+                    because its travel distance differs from the remaining
+                    movements. The remaining 10 clicks provide valid movement-time
+                    measurements for each A/W condition.
+                </p>
+
+                <p>
+                    The collected data are analyzed using
+                    <strong>Index of Difficulty (ID)</strong> as the independent
+                    variable and <strong>Movement Time (MT)</strong> as the
+                    dependent variable.
+                </p>
+
+                <div class="equation-box">
+                    ID = log₂(A / W + 1)
+                </div>
+
+                <p>
+                    The Fitts' Law linear model is:
+                </p>
+
+                <div class="equation-box">
+                    MT = a + b × ID
+                </div>
+
+                <img
+                    class="analysis-image"
+                    src="images/ScatterPlot_example.png"
+                    alt="Scatter plot showing the relationship between Index of Difficulty and Movement Time">
+
+                <p class="source-note">
+                    Example analysis generated from the demo-video data.
+                    Linear regression produced a = 335.232, b = 146.18,
+                    with R² = 0.9416.
+                </p>
+            </section>
+
+            <!-- =================================================
+                 Experiment Instructions
+                 ================================================= -->
+
+            <section class="info-section">
+                <h3>How to Play</h3>
+
+                <ul class="instruction-list">
+
+                    <li>
+                        Click the <strong>red X</strong> located at the
+                        upper-right corner of each popup.
+                    </li>
+
+                    <li>
+                        There are <strong>9 trials</strong>. Each trial requires
+                        <strong>11 successful clicks</strong>.
+                    </li>
+
+                    <li>
+                        The first click of each trial is excluded from the
+                        analysis. Therefore, each trial produces
+                        <strong>10 valid movement-time measurements</strong>.
+                    </li>
+
+                    <li>
+                        Move the mouse directly to the red X and click as quickly
+                        and accurately as possible.
+                    </li>
+
+                </ul>
+            </section>
 
             <!-- =================================================
                  Example Popup
@@ -1227,56 +1495,36 @@ body {
 
                     <div class="example-popup">
 
-                        <div
-                            class="example-popup-titlebar">
-
+                        <div class="example-popup-titlebar">
                             SYSTEM ALERT
-
                         </div>
 
+                        <div class="example-popup-body">
 
-                        <div
-                            class="example-popup-body">
-
-                            <div
-                                class="example-warning">
-
+                            <div class="example-warning">
                                 MALWARE DETECTED
-
                             </div>
 
-
-                            <div
-                                class="example-message">
-
+                            <div class="example-message">
                                 Your system may be infected.
                                 Close this advertisement to
                                 continue protecting the system.
-
                             </div>
 
-
                             <div class="fake-button">
-
                                 SCAN NOW
-
                             </div>
 
                         </div>
 
-
-                        <div
-                            class="example-target">
+                        <div class="example-target">
                         </div>
 
                     </div>
 
-
                     <div class="example-caption">
-
                         Example experimental target:
                         click the red X.
-
                     </div>
 
                 </div>
@@ -1286,9 +1534,7 @@ body {
             <button
                 class="primary-button"
                 id="beginButton">
-
                 Begin Experiment
-
             </button>
 
         </div>
