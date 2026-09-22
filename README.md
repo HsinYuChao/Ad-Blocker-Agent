@@ -50,6 +50,7 @@ $$
 
 ## 4. Website & Demo Video
 
+It is recommended to set the browser zoom level to 80% or lower for a better experience.
 - [Webstie URL](https://hsinyuchao.github.io/Ad-Blocker-Agent/ "Ad-Blocker-Agent")
 - [Demo video URL](https://drive.google.com/file/d/1JBNYiog-bjBaocaBt3ffuINA0M70Og6a/view?usp=sharing "Demo Video")
 
